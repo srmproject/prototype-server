@@ -1,0 +1,21 @@
+# vscode
+settings.json
+.vscode
+
+# python
+__pycache__/
+.idea
+.pytest_cache
+
+# db
+migrations/
+db.sqlite3
+
+# virtual pyenv
+venv/
+
+# helm test
+springboot-helm/
+gitclone_test/
+test.yaml
+today
