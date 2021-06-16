@@ -24,7 +24,7 @@ class ConfigureHelmProject:
     def __init__(self, helm_repo_url, application_name, cpu, memory, port, image_version=1):
         self.helm_repo_url = helm_repo_url
         self.image_name = application_name
-        self.helm_localpath = application_name
+        self.helm_localpath = os.path.join("appofapps", application_name)
         self.imgae_version = image_version
         self.port = port
         self.helm_values_path = os.path.join(self.helm_localpath, 'values.yaml')
@@ -39,6 +39,9 @@ class ConfigureHelmProject:
         '''
         # wait fork helm project done
         time.sleep(5)
+
+        if not os.path.exists("appofapps"):
+            os.makedirs("appofapps")
 
         try:
             # 1. delete local helm project if exists

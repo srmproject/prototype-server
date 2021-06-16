@@ -250,76 +250,75 @@ class GitlabImpl(AbstractGitlab):
             if api_response.ok:
                 api_response_data = api_response.json()
                 
-                # depreacted crate helm repo in gitlab(2021.6.21)
-                # override_values.yaml파일 수정방안으로 변경
                 # fork helm
-                # helm_URI = f"{self.gitlabURI}projects/{helm_projectId}/fork"
-                # helm_name = f"{selected_group_name}-{createAppRequestDto['name']}".format()
-                # createHelmRequestDto = CreateHelmRequestDto(app_id=helm_projectId,
-                #                                             app_name = helm_name,
-                #                                             project_id = get_common_helm()
-                #                                             )
-                # log.debug("fork helm start")
-                # createhelm_api_response = requests.post(helm_URI, headers=headers, data=createHelmRequestDto.__dict__)
-                # log.debug("fork helm done")
+                helm_URI = f"{self.gitlabURI}projects/{helm_projectId}/fork"
+                helm_name = f"{selected_group_name}-{createAppRequestDto['name']}"
+                createHelmRequestDto = CreateHelmRequestDto(app_id=helm_projectId,
+                                                            app_name = helm_name,
+                                                            project_id = get_common_helm()
+                                                            )
 
-                # # fork helm ok
-                # if createhelm_api_response.ok:
-                #     helm_response = createhelm_api_response.json()
+                createhelm_api_response = requests.post(helm_URI, headers=headers, data=createHelmRequestDto.__dict__)
+                log.debug("fork helm done: {}".format(createAppRequestDto['name']))
 
-                #     # change helm values
-                #     configureHelmProject = ConfigureHelmProject(
-                #                                 helm_repo_url=helm_response['http_url_to_repo'],
-                #                                 application_name=helm_name,
-                #                                 cpu=get_default_cpu(),
-                #                                 memory=get_default_memory(),
-                #                                 port=helm_values_port,
-                #                                 image_version=1
-                #                             )
-                #     configureHelmProject.first_configure()
+                # fork helm ok
+                if createhelm_api_response.ok:
+                    helm_response = createhelm_api_response.json()
 
-                # create jenkins job
-                jenkinsCreateJob = JenkinsCreateJob(job_name=createAppRequestDto['name'],
-                                                    folder_name=find_serviceproject.project_name,
+                    # change helm values
+                    configureHelmProject = ConfigureHelmProject(
+                                                helm_repo_url=helm_response['http_url_to_repo'],
+                                                application_name=helm_name,
+                                                cpu=get_default_cpu(),
+                                                memory=get_default_memory(),
+                                                port=helm_values_port,
+                                                image_version=1
+                                            )
+                    configureHelmProject.first_configure()
+
+                    # create jenkins job
+                    jenkinsCreateJob = JenkinsCreateJob(job_name=createAppRequestDto['name'],
+                                                        folder_name=find_serviceproject.project_name,
+                                                        git_repo_url=api_response_data['http_url_to_repo'])
+                    jenkinsjob_create_result = jenkinsCreateJob.createJobWithFolder()
+
+                    if jenkinsjob_create_result['status'] and jenkinsjob_create_result['data']['token']:
+                        login_user = get_userByEmail(current_user.email)
+
+                        # db 등록
+                        # 1. service app 등록
+                        new_serviceapp = ServiceApp(project_id=api_response_data['id'],
+                                                    project_name=api_response_data['name'],
+                                                    weburl=api_response_data['web_url'],
+                                                    group_id=service_projectid,
                                                     git_repo_url=api_response_data['http_url_to_repo'])
-                jenkinsjob_create_result = jenkinsCreateJob.createJobWithFolder()
 
-                if jenkinsjob_create_result['status'] and jenkinsjob_create_result['data']['token']:
-                    login_user = get_userByEmail(current_user.email)
+                        log.debug(new_serviceapp.__dict__)
+                        db.session.add(new_serviceapp)
+                        db.session.commit()
 
-                    # db 등록
-                    # 1. service app 등록
+                        # 2. user_servicempping 등록
+                        new_userappmapping = UserAppMappingEntity(flaskuser_id=login_user.id, app_id=new_serviceapp.id)
+                        db.session.add(new_userappmapping)
+                        db.session.commit()
 
-                    new_serviceapp = ServiceApp(project_id=api_response_data['id'],
-                                                project_name=api_response_data['name'],
-                                                weburl=api_response_data['web_url'],
-                                                group_id=service_projectid,
-                                                git_repo_url=api_response_data['http_url_to_repo'])
+                        # 3. 젠킨스 db 등록
+                        new_jenkinsjob = JenkinsJob(
+                            app_id=new_serviceapp.id,
+                            job_name=new_serviceapp.project_name,
+                            token=jenkinsjob_create_result['data']['token']
+                        )
+                        db.session.add(new_jenkinsjob)
+                        db.session.commit()
 
-                    log.debug(new_serviceapp.__dict__)
-                    db.session.add(new_serviceapp)
-                    db.session.commit()
+                        result['status'] = True
+                        result['data'] = api_response_data
 
-                    # 2. user_servicempping 등록
-                    new_userappmapping = UserAppMappingEntity(flaskuser_id=login_user.id, app_id=new_serviceapp.id)
-                    db.session.add(new_userappmapping)
-                    db.session.commit()
-
-                    # 3. 젠킨스 db 등록
-                    new_jenkinsjob = JenkinsJob(
-                        app_id=new_serviceapp.id,
-                        job_name=new_serviceapp.project_name,
-                        token=jenkinsjob_create_result['data']['token']
-                    )
-                    db.session.add(new_jenkinsjob)
-                    db.session.commit()
-
-                    result['status'] = True
-                    result['data'] = api_response_data
-
-                    log.debug("fork 성공")
+                        log.debug("fork 성공")
+                    else:
+                        log.error("[325] jenkins job 생성 실패: {}".format(jenkinsjob_create_result.json()))
                 else:
-                    log.error("jenkins job 생성 실패")
+                    log.error("[326] helm fork 실패: {}".format(createhelm_api_response.json()))
         except Exception as e:
             log.error("[Error 315] git fork 실패: {}".format(e))
 
