@@ -20,9 +20,9 @@ jenkins:
     
 helm:
   root_Id:
-    springboot: 8
+    springboot: 10
   
-  common_helm_groupId: 85
+  common_helm_groupId: 33
   default_resources:
     cpu: "0.5"
     memeory: "512Mi"
