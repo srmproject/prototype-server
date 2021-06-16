@@ -46,8 +46,8 @@ class JenkinsCreateFolder:
 
         except Exception as e:
             log.error("[316] create jenkins folder: {}".format(e))
-
-        return response
+        finally:
+            return response
             
 class JenkinsCreateJob:
     '''
