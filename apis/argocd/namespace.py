@@ -1,6 +1,5 @@
 from flask_restx import Resource, Namespace
 from logger.log import log
-from .service import JenkinsTriggerJob
 from werkzeug.utils import redirect
 
 ns = Namespace('argocd', version="1.0", description='argocd controller')
