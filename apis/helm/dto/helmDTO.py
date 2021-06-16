@@ -7,9 +7,9 @@ class CreateHelmRequestDto:
         '''
             파라미터
                 id: python, springboot ...
-                app_name: 생성할 앱 이름
-                project_name: 앱을 생성할 프로젝트 이름
-                nemspace_id: helm group_id
+                app_name: 생성할 gitlab project 이름
+                project_name: 생성할 gitlab project 이름
+                nemspace_id: helm gitlab group_id
         '''
         self.id = app_id
         self.name = app_name
