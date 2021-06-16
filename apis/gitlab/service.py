@@ -16,6 +16,7 @@ from apis.jenkins.models import JenkinsJob
 from config.helm_config import get_springboot_helm_rootId, get_common_helm, get_default_cpu, get_default_memory
 from apis.helm.dto.helmDTO import CreateHelmRequestDto
 from apis.helm.service import ConfigureHelmProject
+from apis.argocd.service import ArgocdCreateProject
 
 class AbstractGitlab(metaclass=ABCMeta):
     '''
@@ -71,7 +72,8 @@ class GitlabImpl(AbstractGitlab):
 
     def createGroup(self, post_data, requsetuser_information):
         '''
-            그룹생성
+            프로젝트 생성
+                gitlab group 생성, 젠킨스 폴더 생성, argocd 프로젝트 생성
             파라미터:
                 post_data: CreateGroupRequestDto class.__dict__
                 requsetuser_information: 프로젝트 생성 요청자의 이메일
@@ -94,33 +96,39 @@ class GitlabImpl(AbstractGitlab):
                 log.error('[Error 311] gitlab 그룹 생성 실패')
             else:
                 log.debug("[debug 001] {} 그룹생성 성공".format(post_data['name']))
-                result['data'] = api_response.json()
-                result['status'] = True
-
+                
+                # 젠킨스 폴더 생성
                 jenkinscreatefolder = JenkinsCreateFolder(post_data['name'])
                 create_jenkinsfolder_response = jenkinscreatefolder.create()
-
-                # db 등록
-                # 젠킨스 폴더를 따로 관리하는 DB는 없음
+                                
                 if create_jenkinsfolder_response['status']:
-                    login_user = get_userByEmail(requsetuser_information)
-                    project = ServiceProject(result['data']['id'], result['data']['web_url'], result['data']['name'])
-                    db.session.add(project)
-                    db.session.commit()
+                    # argocd 프로젝트 생성
+                    argocdcontroller = ArgocdCreateProject(post_data['name'])
+                    argocd_response = argocdcontroller.create()
+                    if argocd_response:
+                        # 생성한 프로젝트 db 등록
+                        # 젠킨스 폴더, argocd를 따로 관리하는 DB는 없음
+                        result['data'] = api_response.json()                        
+                        login_user = get_userByEmail(requsetuser_information)
 
-                    user_project_mapping = UserProjectMappingEntity(flaskuser_id=login_user.id, project_id=project.id)
-                    db.session.add(user_project_mapping)
-                    db.session.commit()
+                        project = ServiceProject(result['data']['id'], result['data']['web_url'], result['data']['name'])
+                        db.session.add(project)
+                        db.session.commit()
+                        
+                        user_project_mapping = UserProjectMappingEntity(flaskuser_id=login_user.id, project_id=project.id)
+                        db.session.add(user_project_mapping)
+                        db.session.commit()
 
-                    gitlabuser = self.getUserByflaskuserID(login_user.id)
-                    self.addMembersToGroup(result['data']['id'], gitlabuser.gitlab_userid)
-
-                    log.info("그룹{} DB 등록 성공".format(post_data['name']))
+                        gitlabuser = self.getUserByflaskuserID(login_user.id)
+                        self.addMembersToGroup(result['data']['id'], gitlabuser.gitlab_userid)
+                        
+                        result['status'] = True
+                        log.info("그룹{} DB 등록 성공".format(post_data['name']))
 
         except Exception as e:
             log.error("[Error 310] gitlab 그룹생성 실패: {}".format(e))
-        
-        return result
+        finally:
+            return result
 
     def addMembersToGroup(self, group_id, gitlabuser_id):
         '''
@@ -204,7 +212,7 @@ class GitlabImpl(AbstractGitlab):
 
     def forkProject(self, createAppRequestDto):
         '''
-            앱타입에 맞는 프로젝트 fork
+            애플리케이션 생성
         '''
         result = {
             'status': False,
