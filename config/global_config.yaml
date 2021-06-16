@@ -26,3 +26,8 @@ helm:
   default_resources:
     cpu: "0.5"
     memeory: "512Mi"
+
+argocd:
+  access_token: "11e6eff1ef8d94d41d94f7cdf4e2c73a8b"
+  host: "https://jenkins.choilab.xyz/"
+  admin_user: "choi"
