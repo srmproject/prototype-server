@@ -19,3 +19,6 @@ springboot-helm/
 gitclone_test/
 test.yaml
 today
+
+# argocd directory
+appofapps/
