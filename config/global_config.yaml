@@ -20,7 +20,7 @@ jenkins:
     
 helm:
   root_Id:
-    springboot: 35
+    springboot: 8
   
   common_helm_groupId: 85
   default_resources:
@@ -28,6 +28,6 @@ helm:
     memeory: "512Mi"
 
 argocd:
-  access_token: "11e6eff1ef8d94d41d94f7cdf4e2c73a8b"
+  access_token: ""
   host: "https://argocd.choilab.xyz/"
   admin_user: "choi"
