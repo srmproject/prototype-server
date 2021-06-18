@@ -8,8 +8,6 @@ import stat
 from config.gitlab_config import get_GitlabAccessToken, get_GitlabInitPassword, get_gitlabURI, get_default_memberexpires_data
 from config.argocd_config import get_argocd_app_dirpath, get_argocd_app_groupname, get_argocd_app_name
 import time
-from urllib.request import urlopen
-from zipfile import ZipFile
 import os
 from pathlib import Path
 import urllib
@@ -29,17 +27,19 @@ def download_and_unzip_helmtemplate(url, download_path, uznip_path, app_name):
         헬름 템플릿을 다운로드 받고 압축해제
     """
     try:
+        # git repo 다운로드
         urllib.request.urlretrieve(url, download_path)
         
-        # 임시 디렉터리로 압축해제
-        unzip_path = download_path.split('.zip')[0]
+        # unzip_path = download_path.split('.zip')[0]
 
+        # 압축 해제
         with zipfile.ZipFile(download_path) as zipobj:
             zipinfos = zipobj.infolist()
             for zipinfo in zipinfos:
                 zipinfo.filename = change_rootdir(zipinfo.filename, app_name)
-                log.debug("zipinfo:{}".format(zipinfo.filename))
                 zipobj.extract(zipinfo, uznip_path)
+        
+        #
     except Exception as e:
         log.error("[327] donwload helm template: {}".format(e))
 
@@ -57,7 +57,6 @@ class HelmCreateUserApp:
     '''
 
     def __init__(self, helm_downloadurl, application_name, cpu, memory, port, image_version=1):
-        # self.helm_repo_url = helm_repo_url
         self.helm_download_url = helm_downloadurl
         self.image_name = application_name
         self.helm_localpath = os.path.join(get_argocd_app_dirpath(), application_name)
@@ -103,6 +102,7 @@ class HelmCreateUserApp:
             log.debug("change values.yaml done")
 
             # 4. add, commit and push
+            log.debug("helm template push start")
             repo = Repo(get_argocd_app_dirpath())
             repo.index.add([self.helm_localpath])
             repo.index.commit(f"add new user app: {self.image_name}")
