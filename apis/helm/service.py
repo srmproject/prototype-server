@@ -29,8 +29,6 @@ def download_and_unzip_helmtemplate(url, download_path, uznip_path, app_name):
     try:
         # git repo 다운로드
         urllib.request.urlretrieve(url, download_path)
-        
-        # unzip_path = download_path.split('.zip')[0]
 
         # 압축 해제
         with zipfile.ZipFile(download_path) as zipobj:
@@ -39,7 +37,8 @@ def download_and_unzip_helmtemplate(url, download_path, uznip_path, app_name):
                 zipinfo.filename = change_rootdir(zipinfo.filename, app_name)
                 zipobj.extract(zipinfo, uznip_path)
         
-        #
+        # zip파일 삭제
+        os.remove(download_path)
     except Exception as e:
         log.error("[327] donwload helm template: {}".format(e))
 
