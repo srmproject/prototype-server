@@ -32,7 +32,7 @@ class ConfigureHelmProject:
         self.memory = memory
         self.timeout = 5
     
-    def first_configure(self):
+    def create_helm_directory(self):
         '''
             helm fork이후 첫 번째 설정
                 values.yaml수정

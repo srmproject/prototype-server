@@ -274,7 +274,7 @@ class GitlabImpl(AbstractGitlab):
                                                 port=helm_values_port,
                                                 image_version=1
                                             )
-                    configureHelmProject.first_configure()
+                    configureHelmProject.create_helm_directory()
 
                     # create jenkins job
                     jenkinsCreateJob = JenkinsCreateJob(job_name=createAppRequestDto['name'],
