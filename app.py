@@ -4,13 +4,11 @@ from apis import api_v1
 from login.loginmanager import login_manager
 from db.db import db
 from flask_migrate import Migrate
-import os
 
-def create_app():
+def create_app(mode='Dev'):
     app = Flask(__name__)
 
-    # 설정 불러오기
-    mode = os.environ.get('mode', 'Dev')
+    # 설정 불러오기    
     app.config.from_object(f"flaskconfig.{mode}")
     
     # 설정 출력
