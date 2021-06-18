@@ -1,25 +1,45 @@
 # -*- coding: utf-8 -*-
+import zipfile
 from logger.log import log
 import chevron
 from git.repo.base import Repo
-import shutil
 import os
 import stat
 from config.gitlab_config import get_GitlabAccessToken, get_GitlabInitPassword, get_gitlabURI, get_default_memberexpires_data
 from config.argocd_config import get_argocd_app_dirpath, get_argocd_app_groupname, get_argocd_app_name
 import time
-from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
+import os
+from pathlib import Path
+import urllib
 
-def download_and_unzip_helmtemplate(url, dst):
+def change_rootdir(zipinfo_filename, to_changename):
+    """
+        압축을 해제할 때 rootdir 이름 변경
+    """
+
+    split_name = zipinfo_filename.split("/")
+    split_name[0] = to_changename
+
+    return "/".join(split_name)
+
+def download_and_unzip_helmtemplate(url, download_path, uznip_path, app_name):
     """
         헬름 템플릿을 다운로드 받고 압축해제
     """
     try:
-        with urlopen(url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall(dst)
+        urllib.request.urlretrieve(url, download_path)
+        
+        # 임시 디렉터리로 압축해제
+        unzip_path = download_path.split('.zip')[0]
+
+        with zipfile.ZipFile(download_path) as zipobj:
+            zipinfos = zipobj.infolist()
+            for zipinfo in zipinfos:
+                zipinfo.filename = change_rootdir(zipinfo.filename, app_name)
+                log.debug("zipinfo:{}".format(zipinfo.filename))
+                zipobj.extract(zipinfo, uznip_path)
     except Exception as e:
         log.error("[327] donwload helm template: {}".format(e))
 
@@ -66,7 +86,18 @@ class HelmCreateUserApp:
             # )
             log.debug(f"helm downloadurl: {self.helm_download_url}")
             log.debug(f"dst : {self.helm_localpath}")
-            download_and_unzip_helmtemplate(self.helm_download_url, self.helm_localpath)
+
+            # tmp_dir = str(Path(self.helm_localpath).parent)
+            # download_and_unzip_helmtemplate(self.helm_download_url, tmp_dir)
+            download_and_unzip_helmtemplate(
+                self.helm_download_url, 
+                download_path=f"{self.helm_localpath}.zip",
+                uznip_path=Path(self.helm_localpath).parent,
+                app_name=self.image_name
+            )
+
+            # 임시 디렉터리 이름을 앱이름으로 변경
+            # os.rename(tmp_dir, self.helm_localpath)
 
             # https://gitlab.choilab.xyz/common/argocd/app_appofapps/-/archive/master/app_appofapps-master.zip
             # 1. delete local helm project if exists
