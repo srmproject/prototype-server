@@ -4,10 +4,18 @@ from apis import api_v1
 from login.loginmanager import login_manager
 from db.db import db
 from flask_migrate import Migrate
+import os
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'thisisdemo'
+
+    # 설정 불러오기
+    mode = os.environ.get('mode', 'Dev')
+    app.config.from_object(f"flaskconfig.{mode}")
+    
+    # 설정 출력
+    # print(app.config)
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
     app.config['TESTING'] = False
 
