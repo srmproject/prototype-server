@@ -20,12 +20,21 @@ def get_GitlabInitPassword():
 
 def get_gitlabURI():
     '''
-        gitlab URI
+        리턴: gitlab api 버전이 포함된 URI
     '''
     with open('config/global_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
     return config['gitlab']['gitlabDomain']
+
+def get_gitlabHost():
+    '''
+        리턴: gitlab api 버전이 포함된 URI
+    '''
+    with open('config/global_config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    return config['gitlab']['gitlabHost']
 
 def get_default_memberexpires_data():
     '''
