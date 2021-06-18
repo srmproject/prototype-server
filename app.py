@@ -4,6 +4,8 @@ from apis import api_v1
 from login.loginmanager import login_manager
 from db.db import db
 from flask_migrate import Migrate
+from scheduler.create import scheduler
+import logging
 
 def create_app(mode='Dev'):
     app = Flask(__name__)
@@ -26,5 +28,11 @@ def create_app(mode='Dev'):
 
     # Loginmanager 초기화
     login_manager.init_app(app)
+
+    # 스케쥴러 초기화
+    scheduler.init_app(app)
+    logging.getLogger("apscheduler").setLevel(logging.INFO)
+    from scheduler import tasks
+    scheduler.start()
 
     return app

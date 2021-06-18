@@ -9,6 +9,9 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite3'
     SECRET_KEY = 'thisisdemo'
 
+    # 스케쥴러
+    SCHEDULER_API_ENABLED = True
+
 class Dev(Config):
     DEBUG = True
 
