@@ -30,9 +30,9 @@ def create_app(mode='Dev'):
     login_manager.init_app(app)
 
     # 스케쥴러 초기화
-    scheduler.init_app(app)
-    logging.getLogger("apscheduler").setLevel(logging.INFO)
-    from scheduler import tasks
-    scheduler.start()
+    # scheduler.init_app(app)
+    # logging.getLogger("apscheduler").setLevel(logging.INFO)
+    # from scheduler import tasks
+    # scheduler.start()
 
     return app
