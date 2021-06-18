@@ -13,9 +13,9 @@ from config.gitlab_config import get_pythonappId, get_springbootappId
 from flask_login import current_user
 from apis.jenkins.service import JenkinsCreateFolder, JenkinsCreateJob
 from apis.jenkins.models import JenkinsJob
-from config.helm_config import get_springboot_helm_rootId, get_common_helm, get_default_cpu, get_default_memory
+from config.helm_config import get_springboot_helm_rootId, get_common_helm, get_default_cpu, get_default_memory, get_springboot_helmurl
 from apis.helm.dto.helmDTO import CreateHelmRequestDto
-from apis.helm.service import ConfigureHelmProject
+from apis.helm.service import HelmCreateUserApp
 from apis.argocd.service import ArgocdCreateProject
 
 class AbstractGitlab(metaclass=ABCMeta):
@@ -60,9 +60,9 @@ class AbstractGitlab(metaclass=ABCMeta):
         '''
         pass
 
-    def forkProject(self, createAppRequestDto):
+    def createApp(self, createAppRequestDto):
         '''
-            앱타입에 맞는 프로젝트 fork
+            앱 생성
         '''
         pass
 
@@ -210,115 +210,121 @@ class GitlabImpl(AbstractGitlab):
         '''
         return GitlabUser.query.filter_by(user_id=flaskuser_id).first()
 
-    def forkProject(self, createAppRequestDto):
+    def createApp(self, createAppRequestDto):
         '''
-            애플리케이션 생성
+            앱 생성
+                1. gitlab 템플릿 fork
+                2. helm템플릿 디렉터리를 생성하고 argocd git repo에 push
+                3. jenkins job 생성
         '''
         result = {
             'status': False,
             'data': None
         }
-    
         try:
-            helm_projectId = ""
+            # helm_projectId = ""
+            # helm 템플릿 컨테이너 포트
             helm_values_port = 80
+            helm_downloadurl = ""
 
-            # fork할 앱 id
+            # fork할 애플리케이션 정보 초기화
             if createAppRequestDto['id'] == "python":
                 createAppRequestDto['id'] = get_pythonappId()
                 helm_values_port = 5000
             elif createAppRequestDto['id'] == "springboot":
                 createAppRequestDto['id'] = get_springbootappId()
-                helm_projectId = get_springboot_helm_rootId()
+                # helm_projectId = get_springboot_helm_rootId()
                 helm_values_port = 8080
+                helm_downloadurl = get_springboot_helmurl()
 
-            # gitlab group_id
+            # 1. 애플리케이션 gitlab 프로젝트 fork
+            log.debug("fork application gitlab project start")
             service_projectid = createAppRequestDto['namespace_id']
             find_serviceproject = ServiceProject.query.filter_by(id=createAppRequestDto['namespace_id']).first()
             selected_group_id = find_serviceproject.project_id
-            selected_group_name = find_serviceproject.project_name
+            # selected_group_name = find_serviceproject.project_name
             createAppRequestDto['namespace_id'] = selected_group_id
             
             gitlab_URI = f"{self.gitlabURI}projects/{createAppRequestDto['id']}/fork"
             headers = {"Authorization": "Bearer {}".format(self.accesstoken)}
-
-            # fork gitlab
-            log.debug("fork commonproject start")
             api_response = requests.post(gitlab_URI, headers=headers, data=createAppRequestDto)
-            log.debug("fork commonproject done")
+            log.debug("fork application gitlab project done")
 
             if api_response.ok:
                 api_response_data = api_response.json()
                 
-                # fork helm
-                helm_URI = f"{self.gitlabURI}projects/{helm_projectId}/fork"
-                helm_name = f"{selected_group_name}-{createAppRequestDto['name']}"
-                createHelmRequestDto = CreateHelmRequestDto(app_id=helm_projectId,
-                                                            app_name = helm_name,
-                                                            project_id = get_common_helm()
-                                                            )
+                # helm_URI = f"{self.gitlabURI}projects/{helm_projectId}/fork"
+                # helm_name = f"{selected_group_name}-{createAppRequestDto['name']}"
+                # createHelmRequestDto = CreateHelmRequestDto(app_id=helm_projectId,
+                #                                             app_name = helm_name,
+                #                                             project_id = get_common_helm()
+                #                                             )
 
-                createhelm_api_response = requests.post(helm_URI, headers=headers, data=createHelmRequestDto.__dict__)
-                log.debug("fork helm done: {}".format(createAppRequestDto['name']))
+                # createhelm_api_response = requests.post(helm_URI, headers=headers, data=createHelmRequestDto.__dict__)
+                # log.debug("fork helm done: {}".format(createAppRequestDto['name']))
 
                 # fork helm ok
-                if createhelm_api_response.ok:
-                    helm_response = createhelm_api_response.json()
+                # if createhelm_api_response.ok:
+                # helm_response = createhelm_api_response.json()
 
-                    # change helm values
-                    configureHelmProject = ConfigureHelmProject(
-                                                helm_repo_url=helm_response['http_url_to_repo'],
-                                                application_name=helm_name,
-                                                cpu=get_default_cpu(),
-                                                memory=get_default_memory(),
-                                                port=helm_values_port,
-                                                image_version=1
-                                            )
-                    configureHelmProject.create_helm_directory()
+                # 2. 애플리케이션 helm 디렉터리 생성과 argocd git repo에 push
+                log.debug("create helm template and push gitrepo start")
 
-                    # create jenkins job
-                    jenkinsCreateJob = JenkinsCreateJob(job_name=createAppRequestDto['name'],
-                                                        folder_name=find_serviceproject.project_name,
-                                                        git_repo_url=api_response_data['http_url_to_repo'])
-                    jenkinsjob_create_result = jenkinsCreateJob.createJobWithFolder()
+                helmApp = HelmCreateUserApp(
+                                            # helm_repo_url=helm_response['http_url_to_repo'],
+                                            helm_downloadurl=helm_downloadurl,
+                                            application_name=createAppRequestDto['name'],
+                                            cpu=get_default_cpu(),
+                                            memory=get_default_memory(),
+                                            port=helm_values_port,
+                                            image_version=1
+                                        )
+                helmApp.create()
+                log.debug("create helm template and push gitrepo done")
 
-                    if jenkinsjob_create_result['status'] and jenkinsjob_create_result['data']['token']:
-                        login_user = get_userByEmail(current_user.email)
-
-                        # db 등록
-                        # 1. service app 등록
-                        new_serviceapp = ServiceApp(project_id=api_response_data['id'],
-                                                    project_name=api_response_data['name'],
-                                                    weburl=api_response_data['web_url'],
-                                                    group_id=service_projectid,
+                # 3. 젠킨스 잡 생성
+                jenkinsCreateJob = JenkinsCreateJob(job_name=createAppRequestDto['name'],
+                                                    folder_name=find_serviceproject.project_name,
                                                     git_repo_url=api_response_data['http_url_to_repo'])
+                jenkinsjob_create_result = jenkinsCreateJob.createJobWithFolder()
 
-                        log.debug(new_serviceapp.__dict__)
-                        db.session.add(new_serviceapp)
-                        db.session.commit()
+                if jenkinsjob_create_result['status'] and jenkinsjob_create_result['data']['token']:
+                    login_user = get_userByEmail(current_user.email)
 
-                        # 2. user_servicempping 등록
-                        new_userappmapping = UserAppMappingEntity(flaskuser_id=login_user.id, app_id=new_serviceapp.id)
-                        db.session.add(new_userappmapping)
-                        db.session.commit()
+                    # db 등록
+                    # 1. service app 등록
+                    new_serviceapp = ServiceApp(project_id=api_response_data['id'],
+                                                project_name=api_response_data['name'],
+                                                weburl=api_response_data['web_url'],
+                                                group_id=service_projectid,
+                                                git_repo_url=api_response_data['http_url_to_repo'])
 
-                        # 3. 젠킨스 db 등록
-                        new_jenkinsjob = JenkinsJob(
-                            app_id=new_serviceapp.id,
-                            job_name=new_serviceapp.project_name,
-                            token=jenkinsjob_create_result['data']['token']
-                        )
-                        db.session.add(new_jenkinsjob)
-                        db.session.commit()
+                    log.debug(new_serviceapp.__dict__)
+                    db.session.add(new_serviceapp)
+                    db.session.commit()
 
-                        result['status'] = True
-                        result['data'] = api_response_data
+                    # 2. user_servicempping 등록
+                    new_userappmapping = UserAppMappingEntity(flaskuser_id=login_user.id, app_id=new_serviceapp.id)
+                    db.session.add(new_userappmapping)
+                    db.session.commit()
 
-                        log.debug("fork 성공")
-                    else:
-                        log.error("[325] jenkins job 생성 실패: {}".format(jenkinsjob_create_result.json()))
+                    # 3. 젠킨스 db 등록
+                    new_jenkinsjob = JenkinsJob(
+                        app_id=new_serviceapp.id,
+                        job_name=new_serviceapp.project_name,
+                        token=jenkinsjob_create_result['data']['token']
+                    )
+                    db.session.add(new_jenkinsjob)
+                    db.session.commit()
+
+                    result['status'] = True
+                    result['data'] = api_response_data
+
+                    log.debug("fork 성공")
                 else:
-                    log.error("[326] helm fork 실패: {}".format(createhelm_api_response.json()))
+                    log.error("[325] jenkins job 생성 실패: {}".format(jenkinsjob_create_result.json()))
+                # else:
+                    # log.error("[326] helm fork 실패: {}".format(createhelm_api_response.json()))
         except Exception as e:
             log.error("[Error 315] git fork 실패: {}".format(e))
 

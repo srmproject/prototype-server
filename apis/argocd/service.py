@@ -57,3 +57,11 @@ class ArgocdCreateProject:
             log.error("[323] create argocd project: {}".format(e))
         finally:
             return response
+
+class ArgocdDeploy:
+    """
+        argocd 앱 배포
+    """
+
+    def __init__(self):
+        pass

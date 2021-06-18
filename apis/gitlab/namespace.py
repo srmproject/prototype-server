@@ -145,7 +145,7 @@ class CreateAPP(Resource):
             project_id = request.form.get('projectid') # service_project table primary_key
 
             gitlabAPI = GitlabImpl()
-            response = gitlabAPI.forkProject(CreateAppRequestDto(app_type, app_name, project_id).__dict__)
+            response = gitlabAPI.createApp(CreateAppRequestDto(app_type, app_name, project_id).__dict__)
 
             if response['status']:
                 html_page = 'gitlab/createappsuccess.html'

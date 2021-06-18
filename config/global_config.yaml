@@ -2,9 +2,11 @@ gitlab:
   user_initpassword: "password1234"
   accesstoken: "bfSA7xtqH-1ErYuF8HCW" 
   gitlabDomain: "https://gitlab.choilab.xyz/api/v4/"
+  gitlabHost: "https://gitlab.choilab.xyz/"
 
   group_member_default_expires: "2022-01-01"
 
+  # app template gitlab project ID
   root_appId:
     python: 1
     springboot: 2
@@ -27,7 +29,17 @@ helm:
     cpu: "0.5"
     memeory: "512Mi"
 
+  springboot:
+    app_gitlab_projectid: 10
+    helm_gitlab_groupurl: "common/common-helm"
+    helm_gitlab_projectname: "springboot-helm"
+
 argocd:
-  access_token: ""
+  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMmZkYjcxNS1kZmRkLTQwOTgtYjk0Yy1lMDIyZTBkYTAxM2IiLCJpYXQiOjE2MjM4NDcwMTMsImlzcyI6ImFyZ29jZCIsIm5iZiI6MTYyMzg0NzAxMywic3ViIjoiY2hvaTphcGlLZXkifQ.k8K8-nsyv-oXhLu9EQQkb5XiX0jEk9hDAJL_PRmZ3YQ"
   host: "https://argocd.choilab.xyz/"
   admin_user: "choi"
+  git_repo:
+    app:
+      name: "app_appofapps"
+      id: 17
+      group_name: "common/argocd"
