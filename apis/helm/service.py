@@ -77,36 +77,15 @@ class HelmCreateUserApp:
         time.sleep(5)
 
         try:
-            # 1. helm 템플릿 다운로드
-            # helm_downloadurl = "{}{}{}-/archive/master/{}-master.zip".format(
-            #     get_gitlabURI(),
-            #     get_argocd_app_groupname(),
-            #     get_argocd_app_name(),
-            #     get_argocd_app_name()
-            # )
             log.debug(f"helm downloadurl: {self.helm_download_url}")
             log.debug(f"dst : {self.helm_localpath}")
 
-            # tmp_dir = str(Path(self.helm_localpath).parent)
-            # download_and_unzip_helmtemplate(self.helm_download_url, tmp_dir)
             download_and_unzip_helmtemplate(
                 self.helm_download_url, 
                 download_path=f"{self.helm_localpath}.zip",
                 uznip_path=Path(self.helm_localpath).parent,
                 app_name=self.image_name
             )
-
-            # 임시 디렉터리 이름을 앱이름으로 변경
-            # os.rename(tmp_dir, self.helm_localpath)
-
-            # https://gitlab.choilab.xyz/common/argocd/app_appofapps/-/archive/master/app_appofapps-master.zip
-            # 1. delete local helm project if exists
-            # self.delete_local_helmproject()
-
-            # # 2. clone
-            # log.debug("hel_repo_url: {}, helm_localpath:{}".format(self.helm_repo_url, self.helm_localpath))
-            # repo = Repo.clone_from(self.helm_repo_url, self.helm_localpath)
-            # log.debug("git clone done")
 
             # 2. change helm valeus.yaml
             with open(self.helm_values_path, 'r') as f:
@@ -118,11 +97,10 @@ class HelmCreateUserApp:
                         "CPU": self.cpu,
                         "MEMORY": self.memory
                     }
-                )
-
-            log.debug("change values.yaml done")
+                )            
             with open(self.helm_values_path, 'w') as f:
                 f.write(changed)
+            log.debug("change values.yaml done")
 
             # 4. add, commit and push
             repo = Repo(get_argocd_app_dirpath())
