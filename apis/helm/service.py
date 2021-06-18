@@ -104,25 +104,12 @@ class HelmCreateUserApp:
 
             # 4. add, commit and push
             repo = Repo(get_argocd_app_dirpath())
-            repo.index.add(['values.yaml'])
+            repo.index.add([self.helm_localpath])
             repo.index.commit(f"add new user app: {self.image_name}")
             log.debug("{} helm add and commit done".format(self.helm_localpath))
 
             repo.git.push()
             log.debug("{} helm push done".format(self.helm_localpath))
-
-            # 5. delete local helm project
-            # self.delete_local_helmproject()
             
         except Exception as e:
             log.error("[318] create app helm is failed {}".format(e))
-            # gitlab project 생성대기
-            raise("[318] create app helm is failed {}".format(e))
-            
-    # def delete_local_helmproject(self):
-    #     '''
-    #         helm local프로젝트 삭제
-    #     '''
-    #     if os.path.exists(self.helm_localpath):
-    #         #reference: https://programmersought.com/article/97605598037/
-    #         shutil.rmtree(self.helm_localpath, onerror=readonly_handler)
