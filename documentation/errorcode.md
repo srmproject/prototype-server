@@ -27,3 +27,5 @@
 | 325 | 젠킨스 폴더 생성요청은 성공했지만 생성 실패 |
 | 326 | helm fork요청은 성공했지만 fork실패 |
 | 327 | argocd에 앱 등록 과정 중, gitlab에 있는 helm template 다운로드 실패 |
+| 328 | argocd 앱 배포 api 호출 실패 |
+| 329 | argocd 앱 배포 실패 |

@@ -4,7 +4,9 @@ from config.argocd_config import get_argocdToken, get_argocdURI, get_argocdadmin
 import requests
 from logger.log import log
 import json
-
+from . import models
+from db.db import db
+import requests
 class ArgocdCreateProject:
     '''
         argocd 폴더 생성
@@ -60,8 +62,68 @@ class ArgocdCreateProject:
 
 class ArgocdDeploy:
     """
-        argocd 앱 배포
+        argocd로 앱 배포
     """
 
-    def __init__(self):
+    def __init__(self, app_name):
+        
         pass
+
+    def exist_app(self):
+        '''
+        DB 접속해서 배포할 앱이 있는지 확인
+        리턴: True, False
+        '''
+        pass
+
+    def add_app(self):
+        '''
+        배포할 앱 등록
+        1. DB 추가
+        2. argocd git repo 업데이트
+        '''
+        pass
+
+    def trigger_deploy(self):
+        '''
+            argocd deploy api 호출
+            리턴: argocd url
+        '''
+        url = ""
+
+        try:
+            data = {
+
+            }
+            headers = {}
+
+            requests.post("", headers=headers)
+
+        except Exception as e:
+            log.error("[328] argocd deploy api 호출 실패")
+        finally:
+            return url
+
+    def deploy(self):
+        response = {
+            'status': False,
+            'deploy_url': ""
+        }
+
+        try:
+            # 1. argocd 배포 DB에 앱이 등록되어 있지않으면 등록
+            if not self.exist_app():
+                self.add_app()
+                
+            # 2. argocd 앱 배포 실행
+            response['deploy_url'] = self.trigger_deploy()
+            response['status'] = True
+            # 2. 
+            # new_app = 
+            # db.session.add(new_serviceapp)
+            # db.session.commit()
+            pass
+        except Exception as e:
+            log.error("[329] argocd deploy 실패")
+        finally:
+            return response
