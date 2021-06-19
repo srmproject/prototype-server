@@ -308,8 +308,6 @@ class GitlabImpl(AbstractGitlab):
                     log.debug("fork 성공")
                 else:
                     log.error("[325] jenkins job 생성 실패: {}".format(jenkinsjob_create_result.json()))
-                # else:
-                    # log.error("[326] helm fork 실패: {}".format(createhelm_api_response.json()))
         except Exception as e:
             log.error("[Error 315] git fork 실패: {}".format(e))
 
