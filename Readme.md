@@ -1,7 +1,62 @@
-# 개요
-* 1차목표: 프로젝트 생성, 관리를 자동화 하는 프로젝트
-* 2차목표: kubeflow 연동
-* [요구사항 바로가기](documentation/요구사항.md)
+- [Paste Your Document In Here](#paste-your-document-in-here)
+  * [And a table of contents](#and-a-table-of-contents)
+  * [On the right# 프로젝트 소개](#on-the-right---------)
+- [필요조건](#----)
+- [설치](#--)
+  * [python venv 생성과 활성화](#python-venv--------)
+  * [파이썬 패키지 설치](#----------)
+- [실행방법](#----)
+  * [DB 생성](#db---)
+  * [flask 애플리케이션 실행](#flask----------)
+- [api 목록](#api---)
+
+# 프로젝트 소개
+## 프로젝트 목적
+개발자(사용자)가 자신이 원할 때 개발환경을 구축해주는 시스템
+
+## 프로젝트 목표
+1. 사용자가 신청한 개발환경이 쿠버네티스에 구축
+   * 1차 목표: private 쿠버네티스
+   * 2차 목표: public 쿠버네티스
+     * EKS
+2. CI/CD 자동화
+   * 1차 목표
+     * CI: 젠킨스와 blueocean
+     * CD: argocd
+   * 2차 목표
+     * CI: tekton 또는 Gitlab CI
+     * CD: argocd
+3. 개발환경 마이그레이션
+   * 1차 목표: Dev환경만 구축
+   * 2차 목표: Dev, Prod
+   * 3차 목표: Dev -> Stage -> Prod
+4. 로그 시스템
+   * 쿠버네티스에서 동작하는 애플리케이션 로그를 보여주는 웹 대시보드
+   * 1차 목표: PLG를 구축하고 수동으로 찾아가도록
+   * 2차 목표: 자동 연동
+   * 3차 목표: 쿼리 추가
+5. 메트릭(Metrics) 시스템
+   * 쿠버네티스에서 동작하는 애플리케이션 로그 메트릭(cpu, memory 등)정보를 보여주는 웹 대시보드
+   * 1차 목표: 프로메테우스 구축하고 수동으로 찾아가도록
+   * 2차 목표: 자동 연동
+   * 3차 목표: 쿼리 추가
+6. 애플리케이션 템플릿
+   * 사용자가 생성할
+7. 컨테이너 이미지 버전관리
+   * 1차 목표: 버전 1로만 
+   * 2차 목표: tood
+8. UI/UX
+   * 1차 목표: html로만 기능이 동작하는지 확인
+   * 2차 목표: vuejs 또는 reactjs
+9. 통합인증(SSO)
+   * 1차 목표: 구현 X
+   * 2차 목표: LDAP, 커버로스 사용
+10. 백엔드
+    * 1차 목표: flask
+    * 2차 목표: flask 또는 springboot
+11. workflow 관리
+    * 1차 목표: 구현 X
+    * 2차 목표: airflow 또는 argo workflow
 
 <br>
 
