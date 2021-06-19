@@ -34,6 +34,10 @@ helm:
     helm_gitlab_groupurl: "common/common-helm"
     helm_gitlab_projectname: "springboot-helm"
 
+grafana:
+  host: "https://grafana.choilab.xyz/"
+  dashboard_filterpath: "grafana_dashboard_filter.json"
+
 argocd:
   access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMmZkYjcxNS1kZmRkLTQwOTgtYjk0Yy1lMDIyZTBkYTAxM2IiLCJpYXQiOjE2MjM4NDcwMTMsImlzcyI6ImFyZ29jZCIsIm5iZiI6MTYyMzg0NzAxMywic3ViIjoiY2hvaTphcGlLZXkifQ.k8K8-nsyv-oXhLu9EQQkb5XiX0jEk9hDAJL_PRmZ3YQ"
   host: "https://argocd.choilab.xyz/"
