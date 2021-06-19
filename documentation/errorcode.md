@@ -29,3 +29,4 @@
 | 327 | argocd에 앱 등록 과정 중, gitlab에 있는 helm template 다운로드 실패 |
 | 328 | argocd 앱 배포 api 호출 실패 |
 | 329 | argocd 앱 배포 실패 |
+| 330 | argocd 앱 배포 중 템플릿 생성 실패 |
