@@ -1,6 +1,7 @@
 from flask_restx import Resource, Namespace
 from logger.log import log
 from werkzeug.utils import redirect
+from apis.argocd.service import ArgocdDeploy
 
 ns = Namespace('argocd', version="1.0", description='argocd controller')
 
@@ -10,7 +11,6 @@ class Index(Resource):
     def get(self):
         return "This is a argocd health check api"
 
-
 @ns.route("/deploy/<string:project_name>/<string:app_name>")
 class Index(Resource):
     '''
@@ -18,4 +18,8 @@ class Index(Resource):
     '''
     @ns.doc(response={200: "success"})
     def get(self, project_name, app_name):
+
+        argocddeploy = ArgocdDeploy(project_name, app_name)
+        argocddeploy.deploy()
+
         return f"{project_name}, {app_name}"

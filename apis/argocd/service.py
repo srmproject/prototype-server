@@ -65,17 +65,19 @@ class ArgocdDeploy:
         argocd로 앱 배포
     """
 
-    def __init__(self, app_name):
-        
-        pass
+    def __init__(self, project_name, app_name):
+        self.project_name = project_name
+        self.app_name = app_name
+        self.argocd_accesstoken = get_argocdToken()
+        self.host = get_argocdURI()
+        self.admin = get_argocdadmin()
 
-    def exist_app(self, app_name):
+    def exist_app(self):
         '''
         DB 접속해서 배포할 앱이 있는지 확인
         리턴: True, False
         '''
-        find_app = ArgoUserApps.query.filter_by(app_name=app_name).first()
-        pass
+        return ArgoUserApps.query.filter_by(project_name=self.project_name, app_name=self.app_name).first()
 
     def add_app(self):
         '''
@@ -83,7 +85,14 @@ class ArgocdDeploy:
         1. DB 추가
         2. argocd git repo 업데이트
         '''
-        pass
+
+        # 1. db 추가
+        new_app = ArgoUserApps(project_name=self.project_name, app_name=self.app_name)
+        db.session.add(new_app)
+        db.session.commit()
+
+        # 2. argocd git repo 업데이트
+
 
     def trigger_deploy(self):
         '''
@@ -119,10 +128,7 @@ class ArgocdDeploy:
             # 2. argocd 앱 배포 실행
             response['deploy_url'] = self.trigger_deploy()
             response['status'] = True
-            # 2. 
-            # new_app = 
-            # db.session.add(new_serviceapp)
-            # db.session.commit()
+            
             pass
         except Exception as e:
             log.error("[329] argocd deploy 실패")
