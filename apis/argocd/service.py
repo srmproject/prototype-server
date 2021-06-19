@@ -124,7 +124,7 @@ def sync_application(argocd_host, argocd_access_token, application_name):
             },
             "resources": None,
             "syncOptions": {
-                "items": ["ApplyOutOfSyncOnly=true"]
+                "items": ["CreateNamespace=true"]
             }
         }
         
