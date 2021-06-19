@@ -1,0 +1,24 @@
+// request url: https://gitlab.choilab.xyz/common/argocd/app_appofapps.git
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": { "name": "testt123" },
+  "spec": {
+    "destination": {
+      "name": "",
+      "namespace": "default",
+      "server": "https://kubernetes.default.svc"
+    },
+    "source": {
+      "path": "app-of-apps",
+      "repoURL": "https://gitlab.choilab.xyz/common/argocd/app_appofapps.git",
+      "targetRevision": "HEAD",
+      "helm": { "valueFiles": ["values.yaml"] }
+    },
+    "project": "default",
+    "syncPolicy": {
+      "automated": null,
+      "syncOptions": ["ApplyOutOfSyncOnly=true"]
+    }
+  }
+}
