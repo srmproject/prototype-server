@@ -143,9 +143,15 @@ def sync_application(argocd_host, argocd_access_token, application_name):
     finally:
         return response
 
+def get_deploy_appname(project_name, app_name):
+    """
+        argocd 애플리케이션 중복을 막기 위한 이름정의
+    """
+    return f"{project_name}-{app_name}"
+
 class ArgocdCreateProject:
     '''
-        argocd 폴더 생성
+        argocd 프로젝트 생성
             프로젝트가 생성 될 때
     '''
 
@@ -255,6 +261,8 @@ class ArgocdDeploy:
         """
         self.project_name = project_name
         self.app_name = app_name
+        # argocd 애플리케이션 중복을 막기 위해 deploy 이름 정의
+        self.deploy_app_name = get_deploy_appname(self.project_name, self.app_name)
         self.argocd_accesstoken = get_argocdToken()
         self.host = get_argocdURI()
         self.admin = get_argocdadmin()
@@ -316,36 +324,31 @@ class ArgocdDeploy:
         new_app = ArgoUserApps(project_name=self.project_name, app_name=self.app_name)
         db.session.add(new_app)
         db.session.commit()
-
-        # 2. argocd git repo 업데이트
-        apps = self.get_allapps()
-        self.generate_app_template(apps)
         
-        # 3. git add/commit/push
+        self.update_argocd_apps()
+
+        # 2. git add/commit/push
+        self.update_remotegitrepo_apps_values(
+            commit_message=f"add new user project.app: {self.project_name}.{self.app_name}",
+            addfiles=[self.values_path])
+
+    def update_remotegitrepo_apps_values(self, commit_message, addfiles=None):
+        '''
+            argocd remote git repo에 push
+        '''
         repo = Repo(get_argocd_app_dirpath())
-        repo.index.add([self.values_path])
-        repo.index.commit(f"add new user project.app: {self.project_name}.{self.app_name}")
+        if addfiles:
+            repo.index.add(addfiles)
+        repo.index.commit(commit_message)
         repo.git.push()
 
-    def trigger_deploy(self):
+    def update_argocd_apps(self):
         '''
-            argocd deploy api 호출
-            리턴: argocd url
+            argocd app 최신화
+                DB에 등록되어 있는 앱을 argocd git remote repo valeus.yaml파일에 등록
         '''
-        url = ""
-
-        try:
-            data = {
-
-            }
-            headers = {}
-
-            requests.post("", headers=headers)
-
-        except Exception as e:
-            log.error(f"[328] argocd deploy api 호출 실패: {e}")
-        finally:
-            return url
+        apps = self.get_allapps()
+        self.generate_app_template(apps)
 
     def deploy(self):
         """
@@ -357,6 +360,8 @@ class ArgocdDeploy:
             # 1. argocd 배포 DB에 앱이 등록되어 있지않으면 등록
             if not self.exist_app():
                 self.add_app()
+            else:
+                self.update_remotegitrepo_apps_values(commit_message="sync")
             
             # 2. appofapps 애플리케이션이 argocd에 등록되어 있지 않으면 등록
             appofapps_helper = ArgocdappofappsApplication()
@@ -368,8 +373,8 @@ class ArgocdDeploy:
             
             # appofapps가 sync시간 대기
             # todo: 버그(무한 대기)가 발생할 수 있음.
-            while not exist_argocd_application(argocd_host=self.host, argocd_access_token=self.argocd_accesstoken, application_name=self.app_name):
-                log.debug(f"wait for sync app: {self.app_name}")
+            while not exist_argocd_application(argocd_host=self.host, argocd_access_token=self.argocd_accesstoken, application_name=self.deploy_app_name):
+                log.debug(f"wait for sync app: {self.deploy_app_name}")
                 # api 블럭 당하는 코드
                 # todo: 수정 필요
                 time.sleep(3)
@@ -377,7 +382,7 @@ class ArgocdDeploy:
             sync_application(
                 argocd_host=self.host,
                 argocd_access_token=self.argocd_accesstoken,
-                application_name=self.app_name
+                application_name=self.deploy_app_name
             )
             
             response = True
