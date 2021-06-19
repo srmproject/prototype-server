@@ -4,7 +4,7 @@ from config.argocd_config import get_argocdToken, get_argocdURI, get_argocdadmin
 import requests
 from logger.log import log
 import json
-from . import models
+from .models import ArgoUserApps
 from db.db import db
 import requests
 class ArgocdCreateProject:
@@ -69,11 +69,12 @@ class ArgocdDeploy:
         
         pass
 
-    def exist_app(self):
+    def exist_app(self, app_name):
         '''
         DB 접속해서 배포할 앱이 있는지 확인
         리턴: True, False
         '''
+        find_app = ArgoUserApps.query.filter_by(app_name=app_name).first()
         pass
 
     def add_app(self):

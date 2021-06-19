@@ -10,3 +10,12 @@ class Index(Resource):
     def get(self):
         return "This is a argocd health check api"
 
+
+@ns.route("/deploy/<string:project_name>/<string:app_name>")
+class Index(Resource):
+    '''
+        앱 배포
+    '''
+    @ns.doc(response={200: "success"})
+    def get(self, project_name, app_name):
+        return f"{project_name}, {app_name}"

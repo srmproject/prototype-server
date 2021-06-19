@@ -179,7 +179,8 @@ class GetApp(Resource):
                 'appname': '',
                 'gitlab_url': '',
                 'jenkins_url': '',
-                'jenkins_jobpath': ''
+                'jenkins_jobpath': '',
+                'deploy_url': ''
             }
             # get group name
             app_name = app.project_name
@@ -196,6 +197,7 @@ class GetApp(Resource):
             application_info['projectname'] = group_name
             application_info['appname'] = app_name
             application_info['gitlab_url'] = app.weburl
+            application_info['deploy_url'] = f'{group_name}/{app_name}'
             application_infos.append(application_info)
 
         return make_response(render_template('gitlab/application_dashboard.html', application_infos=application_infos))
