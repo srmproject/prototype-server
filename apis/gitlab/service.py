@@ -253,20 +253,6 @@ class GitlabImpl(AbstractGitlab):
             if api_response.ok:
                 api_response_data = api_response.json()
                 
-                # helm_URI = f"{self.gitlabURI}projects/{helm_projectId}/fork"
-                # helm_name = f"{selected_group_name}-{createAppRequestDto['name']}"
-                # createHelmRequestDto = CreateHelmRequestDto(app_id=helm_projectId,
-                #                                             app_name = helm_name,
-                #                                             project_id = get_common_helm()
-                #                                             )
-
-                # createhelm_api_response = requests.post(helm_URI, headers=headers, data=createHelmRequestDto.__dict__)
-                # log.debug("fork helm done: {}".format(createAppRequestDto['name']))
-
-                # fork helm ok
-                # if createhelm_api_response.ok:
-                # helm_response = createhelm_api_response.json()
-
                 # 2. 애플리케이션 helm 디렉터리 생성과 argocd git repo에 push
                 log.debug("create helm template and push gitrepo start")
 
