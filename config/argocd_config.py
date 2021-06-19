@@ -56,7 +56,6 @@ def get_argocd_app_valuesfile_path():
 def get_argocd_app_groupname():
     '''
         리턴: 사용자 앱 관리 git repo group이름
-            디폴트: 홈디렉터리
     '''
     with open('config/global_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
@@ -66,7 +65,6 @@ def get_argocd_app_groupname():
 def get_argocd_app_name():
     '''
         리턴: 사용자 앱 관리 git repo group이름
-            디폴트: 홈디렉터리
     '''
     with open('config/global_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
@@ -76,7 +74,6 @@ def get_argocd_app_name():
 def get_appeach_values_templatepath():
     '''
         리턴: 사용자 앱 관리 git repo group이름
-            디폴트: 홈디렉터리
     '''
     with open('config/global_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
@@ -86,9 +83,17 @@ def get_appeach_values_templatepath():
 def get_values_templatepath():
     '''
         리턴: 사용자 앱 관리 git repo group이름
-            디폴트: 홈디렉터리
     '''
     with open('config/global_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
     return os.path.join('config', config['argocd']['templates']['values_template_path'])
+
+def get_argocd_git_remoteurl():
+    '''
+        리턴: argocd app-of-apps git remote url
+    '''
+    with open('config/global_config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    return config['argocd']['git_repo']['remote_url']

@@ -43,6 +43,7 @@ argocd:
       name: "app_appofapps"
       id: 17 # appofpass gitlab project ID
       group_name: "common/argocd"
+    remote_url: "https://gitlab.choilab.xyz/common/argocd/app_appofapps.git"
   
   templates:
     values_each_template_path: "argocd_appofapps_valueseach_template.yaml"
