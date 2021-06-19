@@ -44,26 +44,9 @@ pip install -r requirement.txt
 <br>
 
 # api 목록
-[api문서 이동](documentation/api_list.md)
+* flask 애플리케이션 실행 후 swagger 문서 참고
+```
+예: 127.0.0.1:8888/api/v1
+```
 
 <br>
-
-# 기능 테스트(deprecated)
-[기능테스트문서 이동](tests/Readme.md)
-
-<br>
-
-# 화면 소개
-## 애플리케이션 대시보드
-* 사용자 애플리케이션 목록, 빌드/배포, gitlab URL연동
-
-![application_dashboard](documentation_imgs/application_dashboard.png)
-
-<br>
-
-# 참고자료
-* [1] flask-restx 예제: https://flask-restx.readthedocs.io/en/latest/scaling.html#scaling-your-project
-* [2] flask-restx swagger 예제: https://justkode.kr/python/flask-restapi-2
-* [3] flask-restx github 예제: https://github.com/python-restx/flask-restx/blob/master/examples/todo_blueprint.py
-* [4] 회원가입, 로그인 영상: https://www.youtube.com/watch?v=K0vSCCAM2ss&list=LL&index=4
-* [5] User ORM: https://hackersandslackers.com/flask-login-user-authentication/
