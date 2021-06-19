@@ -1,14 +1,17 @@
-- [Paste Your Document In Here](#paste-your-document-in-here)
-  * [And a table of contents](#and-a-table-of-contents)
-  * [On the right# 프로젝트 소개](#on-the-right---------)
-- [필요조건](#----)
-- [설치](#--)
-  * [python venv 생성과 활성화](#python-venv--------)
-  * [파이썬 패키지 설치](#----------)
-- [실행방법](#----)
-  * [DB 생성](#db---)
-  * [flask 애플리케이션 실행](#flask----------)
-- [api 목록](#api---)
+
+- [프로젝트 소개](#프로젝트-소개)
+  - [프로젝트 목적](#프로젝트-목적)
+  - [프로젝트 목표](#프로젝트-목표)
+- [필요조건](#필요조건)
+- [설치](#설치)
+  - [python venv 생성과 활성화](#python-venv-생성과-활성화)
+  - [파이썬 패키지 설치](#파이썬-패키지-설치)
+- [실행방법](#실행방법)
+  - [DB 생성](#db-생성)
+  - [flask 애플리케이션 실행](#flask-애플리케이션-실행)
+- [api 목록](#api-목록)
+
+<br>
 
 # 프로젝트 소개
 ## 프로젝트 목적
