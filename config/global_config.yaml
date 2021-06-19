@@ -41,5 +41,9 @@ argocd:
   git_repo:
     app:
       name: "app_appofapps"
-      id: 17
+      id: 17 # appofpass gitlab project ID
       group_name: "common/argocd"
+  
+  templates:
+    values_each_template_path: "argocd_appofapps_valueseach_template.yaml"
+    values_template_path: "argocd_appofapps_values.yaml"

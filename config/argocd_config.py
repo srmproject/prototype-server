@@ -41,6 +41,17 @@ def get_argocd_app_dirpath():
     gitrepo_name = Path(config['argocd']['git_repo']['app']['name'])
     
     return os.path.join(Path.home(), gitrepo_name)
+
+def get_argocd_app_valuesfile_path():
+    '''
+        리턴: 사용자 앱 관리 git repo values 경로
+            디폴트: 홈디렉터리
+    '''
+    with open('config/global_config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    # 사용자 앱 관리 values.yaml 경로
+    return os.path.join(get_argocd_app_dirpath(), 'app-of-apps', 'values.yaml')
     
 def get_argocd_app_groupname():
     '''
@@ -61,3 +72,23 @@ def get_argocd_app_name():
         config = yaml.safe_load(f)
 
     return config['argocd']['git_repo']['app']['name']
+
+def get_appeach_values_templatepath():
+    '''
+        리턴: 사용자 앱 관리 git repo group이름
+            디폴트: 홈디렉터리
+    '''
+    with open('config/global_config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    return os.path.join('config', config['argocd']['templates']['values_each_template_path'])
+
+def get_values_templatepath():
+    '''
+        리턴: 사용자 앱 관리 git repo group이름
+            디폴트: 홈디렉터리
+    '''
+    with open('config/global_config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    return os.path.join('config', config['argocd']['templates']['values_template_path'])
