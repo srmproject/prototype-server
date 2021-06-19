@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from config.argocd_config import get_argocdToken, get_argocdURI, get_argocdadmin, get_argocd_app_dirpath, get_appeach_values_templatepath, get_values_templatepath, get_argocd_app_valuesfile_path
+from config.argocd_config import get_argocdToken, get_argocdURI, get_argocdadmin, get_argocd_app_dirpath, get_appeach_values_templatepath, get_values_templatepath, get_argocd_app_valuesfile_path, get_argocd_git_remoteurl
 import requests
 from logger.log import log
 import json
@@ -10,6 +10,94 @@ import requests
 import chevron
 import os
 from git.repo.base import Repo
+
+def create_argocdapplication(argocd_host, argocd_access_token, argocd_project_name, app_name, deploy_kubernetes_namespace, app_git_remoterepo):
+    """
+        argocd application 생성
+        파라미터:
+            argocd_host: argocd 주소
+            argocd_access_token: argocd 액세스 토큰
+            argocd_project_name: 배포할 argocd 프로젝트 이름
+            app_name: 배포할 앱 이름
+            deploy_kubernetes_namespace: 배포할 쿠버네티스 namespace
+            app_git_remoterepo: argocd가 배포할 앱 git 주소
+        리턴:
+            True: 생성성공
+            False: 생성실패
+    """
+    try:
+        response = False
+        data = {
+            "apiVersion": "argoproj.io/v1alpha1",
+            "kind": "Application",
+            "metadata": 
+                { 
+                    "name": f"{app_name}" 
+                },
+            "spec": {
+                "destination": {
+                    "name": "",
+                    "namespace": f"{deploy_kubernetes_namespace}",
+                    "server": "https://kubernetes.default.svc"
+                },
+                "source": {
+                    "path": f"{app_name}",
+                    "repoURL": f"{app_git_remoterepo}",
+                    "targetRevision": "HEAD",
+                    "helm": { 
+                        "valueFiles": ["values.yaml"] 
+                    }
+                },
+                "project": f"{argocd_project_name}",
+                "syncPolicy": {
+                    "automated": None,
+                    "syncOptions": ["ApplyOutOfSyncOnly=true"]
+                }
+            }
+        }
+
+        request_url = """{}api/v1/applications""".format(argocd_host)
+        headers = {"Authorization": "Bearer {}".format(argocd_access_token)}
+        api_response = requests.post(request_url, data=json.dumps(data), headers=headers)
+
+        if api_response.ok:
+            response = True
+            log.debug(f"argocd 애플리케이션 생성 성공: {argocd_project_name}")
+        else:
+            log.error("[332] create argocd application is failed: {}".format(api_response.json()))
+
+    except Exception as e:
+        log.error("[332] create argocd application is failed: {}".format(e))
+    finally:
+        return response
+
+def exist_argocd_application(argocd_host, argocd_access_token, application_name):
+    """
+        argocd application 검색(모든 argocd 프로젝트 검색)
+        파라미터:
+            argocd_host: argocd 주소
+            argocd_access_token: argocd 액세스 토큰
+            application_name: 검색할 앱 이름
+        리턴:
+            True: 검색성공
+            False: 검색실패
+    """
+    try:
+        response = False
+        
+        request_url = """{}api/v1/projects/{}""".format(argocd_host, application_name)
+        headers = {"Authorization": "Bearer {}".format(argocd_access_token)}
+        api_response = requests.post(request_url, headers=headers)
+
+        if api_response.ok:
+            response = True
+        else:
+            log.error("[331] get argocd application is failed: {}".format(api_response.json()))
+
+    except Exception as e:
+        log.error("[331] get argocd application is failed: {}".format(e))
+    finally:
+        return response
 
 class ArgocdCreateProject:
     '''
@@ -55,7 +143,6 @@ class ArgocdCreateProject:
 
             if api_response.ok:
                 response = True
-                log.debug("argocd project 생성 성공")
             else:
                 log.error("[324] create argocd project is failed: {}".format(api_response.json()))
 
@@ -63,6 +150,48 @@ class ArgocdCreateProject:
             log.error("[323] create argocd project: {}".format(e))
         finally:
             return response
+
+class ArgocdappofappsApplication:
+    '''
+        argocd app-of-apps application관리
+    '''
+
+    def __init__(self):
+        self.argocd_application_name = "app-of-apps"
+        self.argocd_project = "default"
+        self.argocd_gitremote_repo = get_argocd_git_remoteurl()
+        self.argocd_accesstoken = get_argocdToken()
+        self.argocd_host = get_argocdURI()
+        self.argocd_kubernetes_namespace = "default"
+
+    def sync(self):
+        pass
+
+    def create(self):
+        """
+            argocd에 app-of-apps application 생성
+            리턴:
+                True: 생성성공
+                False: 생성실패
+        """
+        return create_argocdapplication(
+            argocd_host=self.argocd_host,
+            argocd_access_token=self.argocd_accesstoken,
+            argocd_project_name=self.argocd_project,
+            app_name=self.argocd_application_name,
+            deploy_kubernetes_namespace=self.argocd_kubernetes_namespace,
+            app_git_remoterepo=self.argocd_gitremote_repo
+        )
+
+    def is_exist(self):
+        """
+            argocd에 app-of-apps application이 있는지 확인
+        """
+        return exist_argocd_application(
+            argocd_host=self.argocd_host,
+            argocd_access_token=self.argocd_accesstoken,
+            application_name=self.argocd_application_name
+        )
 
 class ArgocdDeploy:
     """
@@ -177,10 +306,15 @@ class ArgocdDeploy:
             # 1. argocd 배포 DB에 앱이 등록되어 있지않으면 등록
             if not self.exist_app():
                 self.add_app()
-                
-            # 2. argocd 앱 배포 실행
-            # response['deploy_url'] = self.trigger_deploy()
-            # response['status'] = True
+            
+            log.debug("@@@@@@@@@@@@@@@@@@@@")
+            # 2. appofapps 애플리케이션이 argocd에 등록되어 있지 않으면 등록
+            appofapps_helper = ArgocdappofappsApplication()
+            if not appofapps_helper.is_exist():
+                appofapps_helper.create()
+
+            # 3. appofapps 애플리케이션 sync
+            # appofapps_helper.sync()
             
         except Exception as e:
             log.error(f"[329] argocd deploy 실패: {e}")
