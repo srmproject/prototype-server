@@ -13,8 +13,7 @@ from config.gitlab_config import get_pythonappId, get_springbootappId
 from flask_login import current_user
 from apis.jenkins.service import JenkinsCreateFolder, JenkinsCreateJob
 from apis.jenkins.models import JenkinsJob
-from config.helm_config import get_springboot_helm_rootId, get_common_helm, get_default_cpu, get_default_memory, get_springboot_helmurl
-from apis.helm.dto.helmDTO import CreateHelmRequestDto
+from config.helm_config import get_default_cpu, get_default_memory, get_springboot_helmurl
 from apis.helm.service import HelmCreateUserApp
 from apis.argocd.service import ArgocdCreateProject
 
