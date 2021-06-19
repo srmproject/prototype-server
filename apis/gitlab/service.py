@@ -262,7 +262,7 @@ class GitlabImpl(AbstractGitlab):
                                             cpu=get_default_cpu(),
                                             memory=get_default_memory(),
                                             port=helm_values_port,
-                                            image_version=1
+                                            image_version="dev"
                                         )
                 helmApp.create()
                 log.debug("create helm template and push gitrepo done")
