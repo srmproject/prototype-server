@@ -9,6 +9,7 @@
       <table class="table">
         <thead class="thead-dark">
           <tr>
+            <th scope="col">프로젝트 이름</th>
             <th scope="col">애플리케이션 이름</th>
             <th scope="col">gitlab 바로가기</th>
             <th scope="col">jenkins 바로가기</th>
@@ -20,7 +21,8 @@
         <tbody>
         {% for application_info in application_infos %}
           <tr>            
-            <td>{{application_info.name}}</td>            
+            <td>{{application_info.projectname}}</td>
+            <td>{{application_info.appname}}</td>
             <td>
               <a href="{{application_info.gitlab_url}}" target="_blank">새탭으로 열기</a>
             </td>
@@ -30,7 +32,9 @@
             <td>
               <a href="/api/v1/jenkins/triggerjob/{{application_info.jenkins_jobpath}}" target="_blank">빌드 요청</a>
             </td>
-            <td>todo</td>
+            <td>
+              <a href="/api/v1/argocd/deploy/{{application_info.appname}}" target="_blank">배포 요청</a>
+            </td>
             <td>todo</td>
           </tr>
         {% endfor %}

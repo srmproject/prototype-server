@@ -175,26 +175,27 @@ class GetApp(Resource):
 
         for mapping, app in joinquery_result:
             application_info = {
-                'name': '',
+                'projectname': '',
+                'appname': '',
                 'gitlab_url': '',
                 'jenkins_url': '',
                 'jenkins_jobpath': ''
             }
-            application_info['name'] = app.project_name
-            application_info['gitlab_url'] = app.weburl
-
             # get group name
+            app_name = app.project_name
             group = ServiceProject.query.filter_by(id=app.group_id).first()
             group_name = group.project_name
 
             # get jenkins url
             jenkinsjob = JenkinsJob.query.filter_by(id=app.id).first()
             jenkinsjob_name = jenkinsjob.job_name
-            jenkins_url = '{}/job/{}/job/{}'.format(get_jenkins_host(), group_name, jenkinsjob_name)
-            # log.debug("jenkins_url: {}".format(jenkins_url))
+            jenkins_url = '{}job/{}/job/{}'.format(get_jenkins_host(), group_name, jenkinsjob_name)
 
             application_info['jenkins_url'] = jenkins_url
             application_info['jenkins_jobpath'] = '{}and{}and{}'.format(group_name, jenkinsjob_name, jenkinsjob.id)
+            application_info['projectname'] = group_name
+            application_info['appname'] = app_name
+            application_info['gitlab_url'] = app.weburl
             application_infos.append(application_info)
 
         return make_response(render_template('gitlab/application_dashboard.html', application_infos=application_infos))
