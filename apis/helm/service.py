@@ -5,12 +5,13 @@ import chevron
 from git.repo.base import Repo
 import os
 import stat
-from config.gitlab_config import get_GitlabAccessToken, get_GitlabInitPassword, get_gitlabURI, get_default_memberexpires_data
-from config.argocd_config import get_argocd_app_dirpath, get_argocd_app_groupname, get_argocd_app_name
+from config.argocd_config import get_argocd_app_dirpath
+from config.docker_config import get_private_dockerregistry_host, get_private_dockerregistry_protocol
 import time
 import os
 from pathlib import Path
 import urllib
+from urllib.parse import urljoin
 
 def change_rootdir(zipinfo_filename, to_changename):
     """
@@ -55,9 +56,14 @@ class HelmCreateUserApp:
         애플리케이션 생성 과정에서 helm 호출
     '''
 
-    def __init__(self, helm_downloadurl, application_name, cpu, memory, port, image_version=1):
+    def __init__(self, helm_downloadurl, application_name, cpu, memory, port, image_version="dev"):
         self.helm_download_url = helm_downloadurl
-        self.image_name = application_name
+        # self.image_name = urljoin(
+        #     f"{get_private_dockerregistry_protocol()}://{get_private_dockerregistry_host()}", 
+        #     f"/{application_name}"
+        # )
+        self.image_name = f"{get_private_dockerregistry_host()}/{application_name}"
+        self.application_name = application_name
         self.helm_localpath = os.path.join(get_argocd_app_dirpath(), application_name)
         self.imgae_version = image_version
         self.port = port
@@ -82,7 +88,7 @@ class HelmCreateUserApp:
                 self.helm_download_url, 
                 download_path=f"{self.helm_localpath}.zip",
                 uznip_path=Path(self.helm_localpath).parent,
-                app_name=self.image_name
+                app_name=self.application_name
             )
 
             # 2. change helm valeus.yaml
@@ -104,7 +110,7 @@ class HelmCreateUserApp:
             log.debug("helm template push start")
             repo = Repo(get_argocd_app_dirpath())
             repo.index.add([self.helm_localpath])
-            repo.index.commit(f"add new user app: {self.image_name}")
+            repo.index.commit(f"add new user app: {self.application_name}")
             log.debug("{} helm add and commit done".format(self.helm_localpath))
 
             repo.git.push()

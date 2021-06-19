@@ -47,3 +47,7 @@ argocd:
   templates:
     values_each_template_path: "argocd_appofapps_valueseach_template.yaml"
     values_template_path: "argocd_appofapps_values.yaml"
+
+docker:
+  prviate_registry_host: "docker.choilab.xyz"
+  protocol: "https"
