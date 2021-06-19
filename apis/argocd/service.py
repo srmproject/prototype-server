@@ -10,6 +10,7 @@ import requests
 import chevron
 import os
 from git.repo.base import Repo
+import time
 
 def create_argocdapplication(argocd_host, argocd_access_token, argocd_project_name, app_name, deploy_kubernetes_namespace, app_git_remoterepo):
     """
@@ -85,9 +86,9 @@ def exist_argocd_application(argocd_host, argocd_access_token, application_name)
     try:
         response = False
         
-        request_url = """{}api/v1/projects/{}""".format(argocd_host, application_name)
+        request_url = """{}api/v1/applications/{}""".format(argocd_host, application_name)
         headers = {"Authorization": "Bearer {}".format(argocd_access_token)}
-        api_response = requests.post(request_url, headers=headers)
+        api_response = requests.get(request_url, headers=headers)
 
         if api_response.ok:
             response = True
@@ -96,6 +97,49 @@ def exist_argocd_application(argocd_host, argocd_access_token, application_name)
 
     except Exception as e:
         log.error("[331] get argocd application is failed: {}".format(e))
+    finally:
+        return response
+
+def sync_application(argocd_host, argocd_access_token, application_name):
+    """
+        argocd application sync
+        파라미터:
+            argocd_host: argocd 주소
+            argocd_access_token: argocd 액세스 토큰
+            application_name: sync할 앱 이름
+        리턴:
+            True: sycn 성공
+            False: sync 실패
+    """
+    try:
+        response = False
+        data = {
+            "revision": "HEAD",
+            "prune": False,
+            "dryRun": False,
+            "strategy": {
+                "hook": {
+                "force": False
+                }
+            },
+            "resources": None,
+            "syncOptions": {
+                "items": ["ApplyOutOfSyncOnly=true"]
+            }
+        }
+        
+        request_url = """{}api/v1/applications/{}/sync""".format(argocd_host, application_name)
+        log.debug(f"request_url : {request_url}")
+        headers = {"Authorization": "Bearer {}".format(argocd_access_token)}
+        api_response = requests.post(request_url, data=json.dumps(data), headers=headers)
+
+        if api_response.ok:
+            response = True
+        else:
+            log.error("[333] sync argocd app is failed: {}".format(api_response.json()))
+
+    except Exception as e:
+        log.error("[333] sync argocd app is failed: {}".format(e))
     finally:
         return response
 
@@ -165,7 +209,14 @@ class ArgocdappofappsApplication:
         self.argocd_kubernetes_namespace = "default"
 
     def sync(self):
-        pass
+        """
+            argocd app-of-apps sync
+        """
+        return sync_application(
+            argocd_host=self.argocd_host,
+            argocd_access_token=self.argocd_accesstoken,
+            application_name=self.argocd_application_name
+        )
 
     def create(self):
         """
@@ -297,25 +348,40 @@ class ArgocdDeploy:
             return url
 
     def deploy(self):
-        response = {
-            'status': False,
-            'deploy_url': ""
-        }
+        """
+            argocd에 deploy
+        """
+        response = False
 
         try:
             # 1. argocd 배포 DB에 앱이 등록되어 있지않으면 등록
             if not self.exist_app():
                 self.add_app()
             
-            log.debug("@@@@@@@@@@@@@@@@@@@@")
             # 2. appofapps 애플리케이션이 argocd에 등록되어 있지 않으면 등록
             appofapps_helper = ArgocdappofappsApplication()
             if not appofapps_helper.is_exist():
                 appofapps_helper.create()
 
             # 3. appofapps 애플리케이션 sync
-            # appofapps_helper.sync()
+            appofapps_helper.sync()
             
+            # appofapps가 sync시간 대기
+            # todo: 버그(무한 대기)가 발생할 수 있음.
+            while not exist_argocd_application(argocd_host=self.host, argocd_access_token=self.argocd_accesstoken, application_name=self.app_name):
+                log.debug(f"wait for sync app: {self.app_name}")
+                # api 블럭 당하는 코드
+                # todo: 수정 필요
+                time.sleep(3)
+
+            sync_application(
+                argocd_host=self.host,
+                argocd_access_token=self.argocd_accesstoken,
+                application_name=self.app_name
+            )
+            
+            response = True
+            log.debug(f"argocd deploy done: {self.app_name}")
         except Exception as e:
             log.error(f"[329] argocd deploy 실패: {e}")
         finally:

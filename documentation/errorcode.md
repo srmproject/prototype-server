@@ -32,3 +32,4 @@
 | 330 | argocd 앱 배포 중 템플릿 생성 실패 |
 | 331 | argocd 앱 검색 실패 |
 | 332 | argocd 앱 생성 실패 |
+| 333 | argocd 앱 sync 실패 |
