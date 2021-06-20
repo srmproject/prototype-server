@@ -4,8 +4,8 @@ from apis import api_v1
 from login.loginmanager import login_manager
 from db.db import db
 from flask_migrate import Migrate
-from scheduler.create import scheduler
-import logging
+# from scheduler.create import scheduler
+# import logging
 
 def create_app(mode='Dev'):
     app = Flask(__name__)
