@@ -23,7 +23,7 @@ class AbstractGitlab(metaclass=ABCMeta):
     '''
 
     # gitlab API를 사용하기 위한 accesstoekn 설정
-    accesstoken = get_GitlabAccessToken() # this is for sample
+    accesstoken = get_GitlabAccessToken() 
     gitlabURI = get_gitlabURI()
     initpassword = get_GitlabInitPassword()
     

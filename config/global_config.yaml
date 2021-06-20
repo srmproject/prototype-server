@@ -1,6 +1,6 @@
 gitlab:
   user_initpassword: "password1234"
-  accesstoken: "bfSA7xtqH-1ErYuF8HCW" 
+  accesstoken: "gnTGPMYp3m9FsxzSLhc4" 
   gitlabDomain: "https://gitlab.choilab.xyz/api/v4/"
   gitlabHost: "https://gitlab.choilab.xyz/"
 
@@ -21,18 +21,18 @@ jenkins:
     job_template: "job_templatev1.xml"
     
 helm:
-  root_Id:
-    springboot: 10
-  
-  common_helm_groupId: 33
+  # common_helm_groupId: 33
   default_resources:
     cpu: "0.5"
     memeory: "512Mi"
 
   springboot:
-    app_gitlab_projectid: 10
-    helm_gitlab_groupurl: "common/common-helm"
-    helm_gitlab_projectname: "springboot-helm"
+    # gitlab project ID
+    app_gitlab_projectid: 3
+    # helm gitlab group path
+    helm_gitlab_groupurl: "common/helm"
+    # helm gitlab project name
+    helm_gitlab_projectname: "springboot-helm-template"
 
 grafana:
   host: "https://grafana.choilab.xyz/"
@@ -47,7 +47,7 @@ argocd:
       name: "app_appofapps"
       id: 17 # appofpass gitlab project ID
       group_name: "common/argocd"
-    remote_url: "https://gitlab.choilab.xyz/common/argocd/app_appofapps.git"
+    remote_url: "https://gitlab.choilab.xyz/common/argocd.git"
   
   templates:
     values_each_template_path: "argocd_appofapps_valueseach_template.yaml"
