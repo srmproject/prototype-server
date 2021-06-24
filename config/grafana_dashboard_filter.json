@@ -1,1 +1,0 @@
-["now-30m","now","Loki",{"expr":"{namespace=\"{{project_name}}\", pod=~\"{{app_name}}-.*\"}"},{"mode":"Logs"},{"ui":[true,true,true,"none"]}]
